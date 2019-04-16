@@ -1,0 +1,439 @@
+package com.sonoro.ui;
+
+import com.sonoro.model.Ensemble;
+import com.sonoro.model.Section;
+import com.sonoro.model.SectionUpdateListener;
+import com.sonoro.model.Settings;
+import com.sonoro.model.SettingsUpdateListener;
+import com.sonoro.persistence.EnsembleDAO;
+import com.sonoro.util.RecordingHandler;
+import com.sonoro.util.SwingUtil;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import static java.awt.image.ImageObserver.HEIGHT;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ *
+ * @author ryanl
+ */
+public class SonoroWindow extends javax.swing.JFrame implements SectionUpdateListener, SettingsUpdateListener {
+
+    public static JFrame rootWindow; // for Dialog constructors
+    private Ensemble ensemble;
+    private EnsembleDAO ensembleDAO = new EnsembleDAO();
+    private List<JButton> sectionButtons = new ArrayList<>();
+    private Settings settings = Settings.getInstance();
+    private RecordingHandler recordingHandler = new RecordingHandler();
+    private ClipDialog clipDialog;
+
+    public SonoroWindow() {
+        rootWindow = this;
+        initComponents();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                cleanup();
+            }
+        });
+        try{
+            ensemble = new Ensemble(0);        
+        }
+        catch(IOException ex)
+        {
+            showError(ex.getMessage(), "Failed To Initialize Ensemble");
+        }
+        createSectionButtonsList();
+    }
+    
+    private void cleanup() // called when the application window is closed
+    {
+        recordingHandler.stop(); // stops an ongoing recording if there is one
+        new File("recording.wav").delete(); // clears any existing audio files
+        new File("clip.wav").delete();        
+    }
+    
+    private String createSectionButtonText(Section section)
+    {
+        return "<html><b>" + section.getName() + "</b><br>(" + section.countSelectedMembers() + " selected)</html>";
+    }
+    
+    public void sectionUpdated(Section section)
+    {
+        JButton sectionButton = sectionButtons.get(section.getId());
+        sectionButton.setText(createSectionButtonText(section));
+        try {
+            ensembleDAO.saveSection(ensemble.getId(), section);
+        } catch (IOException ex) {
+            showError(ex.getMessage(), "Failed To Save Section File");
+        }
+    }
+    
+    public void settingsUpdated(Settings settings)
+    {
+        this.settings = settings;
+    }
+    
+    // for faster lookup by index/sectionId, used by sectionUpdated
+    private void createSectionButtonsList()
+    {
+        sectionButtons.add(this.section0Button);
+        sectionButtons.add(this.section1Button);
+        sectionButtons.add(this.section2Button);
+        sectionButtons.add(this.section3Button);
+        sectionButtons.add(this.section4Button);
+        sectionButtons.add(this.section5Button);
+        sectionButtons.add(this.section6Button);
+        sectionButtons.add(this.section7Button);
+        sectionButtons.add(this.section8Button);
+        sectionButtons.add(this.section9Button);
+        Section section;
+        for (int i = 0; i < 10; i++)
+        {
+            section = ensemble.getSection(i);
+            if (section.getName() != null) // only for saved instances
+            {
+                sectionButtons.get(i).setText(createSectionButtonText(section));
+            }
+        }
+    }
+   
+    private void showSectionDialog(int sectionId)
+    {
+        SectionDialog sectionDialog = new SectionDialog(this, true, ensemble.getSection(sectionId));
+        sectionDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        sectionDialog.setModal(true);
+        sectionDialog.createMemberButtons();
+        SwingUtil.maximizeWindow(sectionDialog);
+        sectionDialog.setSectionUpdateListener(this);
+        sectionDialog.setVisible(true);
+    }
+    
+    private void showSettingsDialog()
+    {
+        SettingsDialog settingsDialog = new SettingsDialog(this, true);
+        settingsDialog.setLocationRelativeTo(null);
+        settingsDialog.setSettingsUpdateListener(this);
+        settingsDialog.setVisible(true);
+    }
+    
+    public static void showError(String message, String title)
+    {
+        JOptionPane.showMessageDialog(rootWindow, message, title, HEIGHT);
+    }
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        headerPanel = new javax.swing.JPanel();
+        sonoroLabel = new javax.swing.JLabel();
+        footerPanel = new javax.swing.JPanel();
+        settingsButton = new javax.swing.JButton();
+        startButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        editButton = new javax.swing.JButton();
+        emailButton = new javax.swing.JButton();
+        centerPanel = new javax.swing.JPanel();
+        section0Button = new javax.swing.JButton();
+        section1Button = new javax.swing.JButton();
+        section2Button = new javax.swing.JButton();
+        section3Button = new javax.swing.JButton();
+        section4Button = new javax.swing.JButton();
+        section5Button = new javax.swing.JButton();
+        section6Button = new javax.swing.JButton();
+        section7Button = new javax.swing.JButton();
+        section8Button = new javax.swing.JButton();
+        section9Button = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Sonoro - Home");
+        setMinimumSize(new java.awt.Dimension(800, 480));
+        setPreferredSize(new java.awt.Dimension(800, 480));
+
+        headerPanel.setLayout(new java.awt.BorderLayout());
+
+        sonoroLabel.setFont(new java.awt.Font("Cambria", 1, 48)); // NOI18N
+        sonoroLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        sonoroLabel.setText("SONORO");
+        headerPanel.add(sonoroLabel, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(headerPanel, java.awt.BorderLayout.PAGE_START);
+
+        footerPanel.setMinimumSize(new java.awt.Dimension(400, 23));
+        footerPanel.setPreferredSize(new java.awt.Dimension(827, 50));
+        footerPanel.setLayout(new java.awt.GridLayout(1, 0));
+
+        settingsButton.setFont(new java.awt.Font("Cambria", 1, 18)); // NOI18N
+        settingsButton.setText("Settings");
+        settingsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                settingsButtonActionPerformed(evt);
+            }
+        });
+        footerPanel.add(settingsButton);
+
+        startButton.setFont(new java.awt.Font("Cambria", 1, 18)); // NOI18N
+        startButton.setText("Start");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+        footerPanel.add(startButton);
+
+        stopButton.setFont(new java.awt.Font("Cambria", 1, 18)); // NOI18N
+        stopButton.setText("Stop");
+        stopButton.setEnabled(false);
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+        footerPanel.add(stopButton);
+
+        editButton.setFont(new java.awt.Font("Cambria", 1, 18)); // NOI18N
+        editButton.setText("Edit");
+        editButton.setEnabled(false);
+        editButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editButtonActionPerformed(evt);
+            }
+        });
+        footerPanel.add(editButton);
+
+        emailButton.setFont(new java.awt.Font("Cambria", 1, 18)); // NOI18N
+        emailButton.setText("Email");
+        emailButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                emailButtonActionPerformed(evt);
+            }
+        });
+        footerPanel.add(emailButton);
+
+        getContentPane().add(footerPanel, java.awt.BorderLayout.PAGE_END);
+
+        centerPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        section0Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section0Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section0ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section0Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 250, 120, 60));
+
+        section1Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section1Button.setPreferredSize(new java.awt.Dimension(75, 25));
+        section1Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section1ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section1Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 250, 250, 60));
+
+        section2Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section2Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section2ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section2Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 170, 170, 60));
+
+        section3Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section3Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section3ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section3Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 170, 150, 60));
+
+        section4Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section4Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section4ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section4Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 250, 240, 60));
+
+        section5Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section5Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section5ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section5Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 170, 150, 60));
+
+        section6Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section6Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section6ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section6Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(585, 170, 160, 60));
+
+        section7Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section7Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section7ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section7Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 90, 270, 60));
+
+        section8Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section8Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section8ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section8Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 90, 270, 60));
+
+        section9Button.setFont(new java.awt.Font("Cambria", 0, 18)); // NOI18N
+        section9Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                section9ButtonActionPerformed(evt);
+            }
+        });
+        centerPanel.add(section9Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 10, 330, 60));
+
+        getContentPane().add(centerPanel, java.awt.BorderLayout.CENTER);
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void section1ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section1ButtonActionPerformed
+        showSectionDialog(1);
+    }//GEN-LAST:event_section1ButtonActionPerformed
+
+    private void section9ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section9ButtonActionPerformed
+        showSectionDialog(9);
+    }//GEN-LAST:event_section9ButtonActionPerformed
+
+    private void section2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section2ButtonActionPerformed
+        showSectionDialog(2);
+    }//GEN-LAST:event_section2ButtonActionPerformed
+
+    private void section3ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section3ButtonActionPerformed
+        showSectionDialog(3);
+    }//GEN-LAST:event_section3ButtonActionPerformed
+
+    private void section4ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section4ButtonActionPerformed
+        showSectionDialog(4);
+    }//GEN-LAST:event_section4ButtonActionPerformed
+
+    private void section5ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section5ButtonActionPerformed
+        showSectionDialog(5);
+    }//GEN-LAST:event_section5ButtonActionPerformed
+
+    private void section7ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section7ButtonActionPerformed
+        showSectionDialog(7);
+    }//GEN-LAST:event_section7ButtonActionPerformed
+
+    private void section8ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section8ButtonActionPerformed
+        showSectionDialog(8);
+    }//GEN-LAST:event_section8ButtonActionPerformed
+
+    private void section6ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section6ButtonActionPerformed
+        showSectionDialog(6);
+    }//GEN-LAST:event_section6ButtonActionPerformed
+
+    private void section0ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_section0ButtonActionPerformed
+        showSectionDialog(0);
+    }//GEN-LAST:event_section0ButtonActionPerformed
+
+    private void emailButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailButtonActionPerformed
+        if (this.settings.getEmailUsername() == null)
+        {        
+            showSettingsDialog();
+        }
+        else if (ensemble.getSelectedMemberEmails().isEmpty())
+        {
+            showError("Must select at least one member. Click a section, select members, and save.", "No Members Selected");            
+        }
+        else if (!new File(settings.getClipName()).exists())
+        {
+            showError("Must create a clip for attachment. Click 'Edit' to define a clip after completing a recording.", "No Clip Defined");
+        }
+        else
+        {
+            List<String> emails = ensemble.getSelectedMemberEmails();
+            EmailDialog emailDialog = new EmailDialog(this, true, emails);
+            SwingUtil.maximizeWindow(emailDialog);
+            emailDialog.setVisible(true);
+        }
+    }//GEN-LAST:event_emailButtonActionPerformed
+
+    private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
+        showSettingsDialog();
+    }//GEN-LAST:event_settingsButtonActionPerformed
+
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        try {
+            recordingHandler.start();
+            startButton.setEnabled(false);
+            stopButton.setEnabled(true);
+            editButton.setEnabled(false);
+        } catch (IOException ex) {
+            showError(ex.getMessage(), "Failed To Start Recording");
+        }
+        new File("clip.wav").delete();
+    }//GEN-LAST:event_startButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        recordingHandler.stop();
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        editButton.setEnabled(true);
+        if (clipDialog != null)
+        {
+            clipDialog.dispose();
+        }
+        clipDialog = new ClipDialog(this, true, recordingHandler.getRecordingDurationInMillis());
+        clipDialog.setDefaultCloseOperation(HIDE_ON_CLOSE);
+        SwingUtil.maximizeWindow(clipDialog);
+    }//GEN-LAST:event_stopButtonActionPerformed
+
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        clipDialog.setVisible(true);
+    }//GEN-LAST:event_editButtonActionPerformed
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel centerPanel;
+    private javax.swing.JButton editButton;
+    private javax.swing.JButton emailButton;
+    private javax.swing.JPanel footerPanel;
+    private javax.swing.JPanel headerPanel;
+    private javax.swing.JButton section0Button;
+    private javax.swing.JButton section1Button;
+    private javax.swing.JButton section2Button;
+    private javax.swing.JButton section3Button;
+    private javax.swing.JButton section4Button;
+    private javax.swing.JButton section5Button;
+    private javax.swing.JButton section6Button;
+    private javax.swing.JButton section7Button;
+    private javax.swing.JButton section8Button;
+    private javax.swing.JButton section9Button;
+    private javax.swing.JButton settingsButton;
+    private javax.swing.JLabel sonoroLabel;
+    private javax.swing.JButton startButton;
+    private javax.swing.JButton stopButton;
+    // End of variables declaration//GEN-END:variables
+}
